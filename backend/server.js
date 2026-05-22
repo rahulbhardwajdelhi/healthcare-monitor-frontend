@@ -1,6 +1,8 @@
 const express = require('express');
 require('dotenv').config();
 
+const patientsRouter = require('./routes/patients');
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -11,6 +13,9 @@ app.use(express.json());
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
 });
+
+// Routes
+app.use('/api/patients', patientsRouter);
 
 app.listen(PORT, () => {
   console.log(`Healthcare Monitor API running on port ${PORT}`);
