@@ -1,0 +1,17 @@
+{
+  "name": "healthcare-monitor-backend",
+  "version": "1.0.0",
+  "description": "Healthcare monitoring backend API",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "keywords": ["healthcare", "monitoring", "api"],
+  "author": "GitHub Copilot",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^5.0.0",
+    "dotenv": "^16.0.0"
+  }
+}
