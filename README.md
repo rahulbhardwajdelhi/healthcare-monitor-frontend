@@ -7,4 +7,4 @@ Quick start:
 1. Open `c:\Users\werty\HEALTHCARE MONITOR\frontend\index.html` in your browser.
 2. Click "Refresh Data" to simulate live updates.
 
-If you'd like, I can add a build tool (Vite/React) or push this repository to GitHub.
+
