@@ -3,7 +3,7 @@ function requestLogger(req, res, next) {
   const start = Date.now();
   res.on('finish', () => {
     const duration = Date.now() - start;
-    console.log(`${req.method} ${req.path} - ${res.statusCode} (${duration}ms)`);
+    console.log(`${req.method} ${req.originalUrl} - ${res.statusCode} (${duration}ms)`);
   });
   next();
 }
@@ -11,9 +11,11 @@ function requestLogger(req, res, next) {
 // Error handling middleware
 function errorHandler(err, req, res, next) {
   console.error('Error:', err.message);
+  if (err.stack) console.error(err.stack);
   res.status(err.status || 500).json({
     error: err.message || 'Internal server error',
-    status: err.status || 500
+    status: err.status || 500,
+    timestamp: new Date().toISOString()
   });
 }
 
