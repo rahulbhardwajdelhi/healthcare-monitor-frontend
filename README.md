@@ -8,3 +8,9 @@ Quick start:
 2. Click "Refresh Data" to simulate live updates.
 
 If you'd like, I can add a build tool (Vite/React) or push this repository to GitHub.
+
+Notes:
+- This frontend is a static demo meant for local testing only.
+- Open the `frontend/index.html` file in a browser to preview the UI.
+
+Maintainer: Rahul Bhardwaj — demo contributor
