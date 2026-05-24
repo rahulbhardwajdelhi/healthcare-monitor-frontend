@@ -24,5 +24,5 @@ app.use(notFoundHandler);
 app.use(errorHandler);
 
 app.listen(PORT, () => {
-  console.log(`Healthcare Monitor API running on port ${PORT}`);
+  console.log(`Healthcare Monitor API running on port ${PORT} (env: ${process.env.NODE_ENV || 'development'})`);
 });
