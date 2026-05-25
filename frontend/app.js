@@ -1,41 +1,125 @@
-const samplePatients = [
-  { id: 1, name: 'Alice', heart: 72, spo2: 98, temp: 36.7 },
-  { id: 2, name: 'Bob', heart: 88, spo2: 95, temp: 37.2 },
-  { id: 3, name: 'Carlos', heart: 64, spo2: 99, temp: 36.4 },
-  { id: 4, name: 'Dana', heart: 102, spo2: 92, temp: 38.1 }
-]
+const API_BASE = '/patients'
 
-function formatMetric(v, suffix=''){
-  return `${v}${suffix}`
+function el(id){ return document.getElementById(id) }
+
+function formatMetric(v, suffix=''){ return `${v}${suffix}` }
+
+async function fetchPatients(){
+  try{
+    const res = await fetch(API_BASE)
+    if(!res.ok) throw new Error('fetch failed')
+    return await res.json()
+  }catch(e){
+    console.warn('Could not fetch patients, using sample fallback', e)
+    return []
+  }
 }
 
-function renderCards(){
-  const el = document.getElementById('cards')
-  el.innerHTML = ''
-  samplePatients.forEach(p=>{
+function statusBadge(status){
+  return `<span class="badge ${status}">${status}</span>`
+}
+
+function renderCards(patients){
+  const elCards = el('cards')
+  elCards.innerHTML = ''
+  if(!patients || patients.length===0){
+    elCards.innerHTML = '<div class="empty">No patients found</div>'
+    return
+  }
+
+  patients.forEach(p=>{
     const card = document.createElement('article')
     card.className = 'card'
+    const vitals = p.vitals || {}
     card.innerHTML = `
-      <h3>${p.name} <span class="muted">(id:${p.id})</span></h3>
-      <div><span class="metric">${formatMetric(p.heart,' bpm')}</span></div>
-      <div class="muted">SpO₂: ${formatMetric(p.spo2,'%')} • Temp: ${formatMetric(p.temp,'°C')}</div>
+      <div class="card-head">
+        <h3>${p.name} <span class="muted">(id:${p.id})</span></h3>
+        ${statusBadge(p.status || 'unknown')}
+      </div>
+      <div class="metrics">
+        <div class="metric"><strong>${formatMetric(vitals.heartRate||'-',' bpm')}</strong><div class="muted">Heart</div></div>
+        <div class="metric"><strong>${formatMetric(vitals.spo2||'-','%')}</strong><div class="muted">SpO₂</div></div>
+        <div class="metric"><strong>${formatMetric(vitals.temp||'-','°C')}</strong><div class="muted">Temp</div></div>
+      </div>
+      <div class="card-actions">
+        <button data-id="${p.id}" class="view">View</button>
+      </div>
     `
-    el.appendChild(card)
+    elCards.appendChild(card)
+  })
+
+  // attach view handlers
+  elCards.querySelectorAll('button.view').forEach(btn=>{
+    btn.addEventListener('click', ()=>showDetail(btn.dataset.id, patients))
   })
 }
 
-function randomize(){
-  samplePatients.forEach(p=>{
-    p.heart = Math.max(45, Math.round(p.heart + (Math.random()*20-10)))
-    p.spo2 = Math.max(85, Math.round(p.spo2 + (Math.random()*6-3)))
-    p.temp = Math.round((p.temp + (Math.random()*0.6-0.3))*10)/10
-  })
-  renderCards()
+function showDetail(id, patients){
+  const p = patients.find(x=>String(x.id)===String(id))
+  if(!p) return
+  const content = document.getElementById('modalContent')
+  content.innerHTML = `
+    <h3>${p.name} <span class="muted">(id:${p.id})</span></h3>
+    <div class="muted">Status: ${p.status || 'n/a'}</div>
+    <div style="margin-top:10px">Last checked: ${p.lastChecked ? new Date(p.lastChecked).toLocaleString() : '—'}</div>
+    <pre style="margin-top:12px">${JSON.stringify(p.vitals||{}, null, 2)}</pre>
+  `
+  const modal = el('modal')
+  modal.classList.remove('hidden')
+  modal.setAttribute('aria-hidden','false')
 }
 
-document.getElementById('refresh').addEventListener('click', ()=>{
-  randomize()
+function closeModal(){
+  const modal = el('modal')
+  modal.classList.add('hidden')
+  modal.setAttribute('aria-hidden','true')
+}
+
+async function refreshAndRender(){
+  const data = await fetchPatients()
+  currentData = data
+  applyFilter()
+}
+
+let currentData = []
+let autoInterval = null
+
+function applyFilter(){
+  const q = (el('search').value||'').toLowerCase().trim()
+  const filtered = currentData.filter(p=>{
+    return String(p.id).includes(q) || (p.name||'').toLowerCase().includes(q)
+  })
+  renderCards(filtered)
+}
+
+// wire UI
+el('refresh').addEventListener('click', ()=> refreshAndRender())
+el('search').addEventListener('input', ()=> applyFilter())
+el('closeModal').addEventListener('click', closeModal)
+el('modal').addEventListener('click', (e)=>{ if(e.target.id==='modal') closeModal() })
+
+el('addForm').addEventListener('submit', async (ev)=>{
+  ev.preventDefault()
+  const fm = new FormData(ev.target)
+  const body = { name: fm.get('name'), status: fm.get('status'), vitals: {} }
+  try{
+    const res = await fetch(API_BASE, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) })
+    if(!res.ok) throw new Error('create failed')
+    const created = await res.json()
+    ev.target.reset()
+    await refreshAndRender()
+  }catch(err){
+    alert('Could not add patient: '+err.message)
+  }
 })
 
-// initial render
-renderCards()
+el('autoToggle').addEventListener('click', ()=>{
+  if(autoInterval){
+    clearInterval(autoInterval); autoInterval=null; el('autoToggle').textContent='Auto: Off'
+  } else {
+    autoInterval = setInterval(refreshAndRender, 10000); el('autoToggle').textContent='Auto: On'
+  }
+})
+
+// initial load
+refreshAndRender()
