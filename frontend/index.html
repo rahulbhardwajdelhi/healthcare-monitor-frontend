@@ -9,21 +9,48 @@
   <body>
     <div class="app">
       <header>
-        <h1>Healthcare Monitor</h1>
-        <p class="subtitle">Live demo dashboard — static sample (demo)</p>
+        <div class="title">
+          <h1>Healthcare Monitor</h1>
+          <span class="pill">Demo Dashboard</span>
+        </div>
+        <p class="subtitle">Patient vitals and quick actions</p>
       </header>
 
       <main>
+        <section class="toolbar">
+          <input id="search" placeholder="Search patients by name or id" />
+          <div class="toolbar-actions">
+            <button id="refresh">Refresh</button>
+            <button id="autoToggle">Auto: Off</button>
+          </div>
+        </section>
+
         <section class="cards" id="cards"></section>
 
-        <section class="controls">
-          <button id="refresh">Refresh Data Now</button>
-        </section>
+        <aside class="panel">
+          <h2>Add Patient</h2>
+          <form id="addForm">
+            <input name="name" placeholder="Full name" required />
+            <select name="status">
+              <option value="stable">Stable</option>
+              <option value="monitored">Monitored</option>
+              <option value="critical">Critical</option>
+            </select>
+            <button type="submit">Add</button>
+          </form>
+        </aside>
       </main>
 
       <footer>Created by Rahul Bhardwaj — demo</footer>
+
+      <div id="modal" class="modal hidden" aria-hidden="true">
+        <div class="modal-card">
+          <button id="closeModal" class="close">✕</button>
+          <div id="modalContent"></div>
+        </div>
+      </div>
     </div>
 
-    <script src="app.js"></script>
+    <script src="app.js" type="module"></script>
   </body>
 </html>
